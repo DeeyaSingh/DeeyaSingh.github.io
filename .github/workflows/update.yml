@@ -3,7 +3,17 @@ name: Update Modified Dates and Generate HTML
 on:
   schedule:
     - cron: '0 0 * * *'
+
+  push:
+    branches: [ master, main, 'push-*' ]
+
   workflow_dispatch:
+
+# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   update-dates-and-generate-html:
@@ -11,34 +21,47 @@ jobs:
     
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          ssh-key: ${{ secrets.PRIVSSH }}
-          submodules: true
+          submodules: 'recursive'
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.12'
+
+      - uses: extractions/setup-just@v2
+
+      - name: Install pagefind
+        uses: supplypike/setup-bin@v4
+        with:
+          uri: "https://github.com/CloudCannon/pagefind/releases/download/v1.1.0/pagefind-v1.1.0-x86_64-unknown-linux-musl.tar.gz"
+          name: "pagefind"
+          version: "1.1.0"
 
       - name: Install dependencies
-        run: pip install pyyaml
+        run: pip install -r requirements.txt
 
-      - name: Run the modified-dates script
-        run: python modified-dates.py
+      - name: Build the website
+        run: just build
 
-      - name: Run the convert script
-        run: python convert.py
+      - name: Index the website
+        run: pagefind --site "public"
 
-      - name: Run the generate script
-        run: python generate.py
+      # upload the build website to artifacts
+      # so that we can download and inspect, if desired.
+      - uses: actions/upload-artifact@v4
+        with:
+          path: './public'
 
-      - name: Commit and push changes
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git add file_modification_dates.txt rules_in_html/* output.html
-          git commit -m "Update file modification dates and regenerate HTML"
-          git push origin main
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './public'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
