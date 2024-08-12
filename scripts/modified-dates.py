@@ -6,11 +6,6 @@ from datetime import datetime, timedelta
 start_dir = sys.argv[1]
 output_file = sys.argv[2]
 
-current_date = datetime.now()
-
-three_months_ago = current_date - timedelta(days=90)
-start_of_year = datetime(current_date.year, 1, 1)
-
 def get_yml_files_and_dates(start_dir):
     yml_files = []
     for root, dirs, files in os.walk(start_dir):
@@ -42,19 +37,17 @@ yml_files_and_dates = get_yml_files_and_dates(start_dir)
 
 yml_files_and_dates.sort(key=lambda x: x[1], reverse=True)
 
-new_files = []
-recent_files = []
-this_year_files = []
-older_files = []
 
-for file_path, last_modified_date in yml_files_and_dates:
-    last_modified_date_dt = datetime.fromtimestamp(last_modified_date)
-    if last_modified_date_dt > three_months_ago:
-        recent_files.append((file_path, last_modified_date))
-    elif last_modified_date_dt > start_of_year:
-        this_year_files.append((file_path, last_modified_date))
-    else:
-        older_files.append((file_path, last_modified_date))
+current_date = datetime.now()
+
+categories = [
+    ("modified in the last day", current_date - timedelta(days=1)),
+    ("modified in the last week", current_date - timedelta(days=7)),
+    ("modified in the last month", current_date - timedelta(days=30)),
+    ("modified in the last three months", current_date - timedelta(days=90)),
+    ("modified in the last year", current_date - timedelta(days=365)),
+]
+
 
 def write_category(f, category_name, files):
     f.write(f'=== {category_name} ===\n')
@@ -62,10 +55,22 @@ def write_category(f, category_name, files):
         last_modified_date_str = datetime.fromtimestamp(last_modified_date).strftime('%Y-%m-%d %H:%M:%S')
         f.write(f'{file_path} {last_modified_date_str}\n')
     f.write('\n')
+    
 
 with open(output_file, 'w') as f:
-    write_category(f, 'Modified in the Past 3 Months', recent_files)
-    write_category(f, 'Modified in the past 12 months', this_year_files)
-    write_category(f, 'Older than 12 months', older_files)
+    for title, delta in categories:
+        current_files = []
+        for file_path, last_modified_date in yml_files_and_dates:
+            last_modified_date_dt = datetime.fromtimestamp(last_modified_date)
+            if last_modified_date_dt > delta:
+                current_files.append((file_path, last_modified_date))
+
+        write_category(f, title, current_files)
+        
+        for item in current_files:
+            yml_files_and_dates.remove(item)
+
+    write_category(f, "older", yml_files_and_dates)
+    
 
 print(f'File names and modification dates have been written to {output_file}')

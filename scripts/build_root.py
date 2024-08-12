@@ -20,9 +20,12 @@ predefined_colors = [
 
 def read_file_paths(txt_file_path):
     categorized_files = {
-        'Modified in the Past 3 Months': [],
-        'Modified in the past 12 months': [],
-        'Older than 12 months': [],
+        "modified in the last day": [],
+        "modified in the last week": [],
+        "modified in the last month": [],
+        "modified in the last three months": [],
+        "modified in the last year": [],
+        "older": [],
     }
 
     with open(txt_file_path, 'r') as f:
@@ -220,6 +223,9 @@ def generate_html(categories_data, color_map):
 
     
     for category, files in categories_data.items():
+        if not files:
+            continue
+        
         html_content += f'<h2>{category}</h2><div class="row">'
         cards_data = []
         for file_path in files:
