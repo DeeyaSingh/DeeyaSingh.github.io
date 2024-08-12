@@ -7,3 +7,5 @@ vendor
 .env/
 .envrc
 file_modification_dates.txt
+public/rules/
+public/pagefind/

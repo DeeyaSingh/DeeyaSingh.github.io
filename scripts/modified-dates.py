@@ -1,9 +1,10 @@
 import os
+import sys
 import subprocess
 from datetime import datetime, timedelta
 
-start_dir = 'capa-rules'
-output_file = 'file_modification_dates.txt'
+start_dir = sys.argv[1]
+output_file = sys.argv[2]
 
 current_date = datetime.now()
 

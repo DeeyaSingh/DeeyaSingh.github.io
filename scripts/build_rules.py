@@ -1,7 +1,11 @@
+import sys
 import yaml
 import os
 from glob import glob
 from datetime import datetime
+
+input_directory = sys.argv[1]
+output_directory = sys.argv[2]
 
 def render_features(features_list, indent=0):
     rendered = ''
@@ -48,6 +52,7 @@ def render_list_item(key, value, indent=0):
     return rendered
 
 def get_last_edited_date(file_path):
+    # TODO(williballenthin): use file_modification_dates.txt
     last_modified_date = os.path.getmtime(file_path)
     return datetime.fromtimestamp(last_modified_date)
 
@@ -98,16 +103,16 @@ def convert_yaml_to_html(yaml_file, output_dir):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{name}</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="styles.css">
-        <link rel="stylesheet" href="https://deeyasingh.github.io/pagefind/pagefind-ui.css">
-        <link rel="stylesheet" href="https://deeyasingh.github.io/pagefind/pagefind-modular-ui.css">
-        <link rel="icon" href="https://deeyasingh.github.io/assets/img/favicon.ico" type="image/x-icon">
+        <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="../css/bootstrap-4.5.2.min.css">
+        <link rel="stylesheet" href="../pagefind/pagefind-ui.css">
+        <link rel="stylesheet" href="../pagefind/pagefind-modular-ui.css">
+        <link rel="stylesheet" type="text/css" href="../css/styles.css">
     </head>
     <body>
         <nav class="navbar navbar-light bg-light justify-content-between">
             <a class="navbar-brand" href="#">
-                <img src="https://deeyasingh.github.io/assets/img/logo.png" alt="Logo" style="max-height: 65px;">
+                <img src="../img/logo.png" alt="Logo" style="max-height: 65px;">
             </a>
             <div id="search"></div>
         </nav>
@@ -131,10 +136,10 @@ def convert_yaml_to_html(yaml_file, output_dir):
                 <div><b>Features:</b></div><div class="grey-box">{rendered_features}</div>
             </div>
         </div>
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <script src="https://deeyasingh.github.io/pagefind/pagefind-ui.js" type="text/javascript"></script>
+        <script src="../js/jquery-3.5.1.slim.min.js"></script>
+        <script src="../js/popper-2.9.2.min.js"></script>
+        <script src="../js/bootstrap-4.5.2.min.js"></script>
+        <script src="../pagefind/pagefind-ui.js" type="text/javascript"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {{
                 new PagefindUI({{
@@ -153,8 +158,6 @@ def convert_yaml_to_html(yaml_file, output_dir):
     with open(output_file_path, 'w') as html_file:
         html_file.write(html_content)
 
-input_directory = 'capa-rules'
-output_directory = 'rules_in_html'
 yaml_files = glob(os.path.join(input_directory, '**/*.yml'), recursive=True)
 
 for yaml_file in yaml_files:

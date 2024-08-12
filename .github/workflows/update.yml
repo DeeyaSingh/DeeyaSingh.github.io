@@ -30,23 +30,23 @@ jobs:
         with:
           python-version: '3.12'
 
+      - uses: extractions/setup-just@v2
+
+      - name: Install pagefind
+        uses: supplypike/setup-bin@v4
+        with:
+          uri: "https://github.com/CloudCannon/pagefind/releases/download/v1.1.0/pagefind-v1.1.0-x86_64-unknown-linux-musl.tar.gz"
+          name: "pagefind"
+          version: "1.1.0"
+
       - name: Install dependencies
-        run: pip install pyyaml
+        run: pip install -r requirements.txt
 
-      - name: Run the modified-dates script
-        run: python modified-dates.py
+      - name: Build the website
+        run: just build
 
-      - name: Run the convert script
-        run: python convert.py
-
-      - name: Run the generate script
-        run: python generate.py
-
-      - name: Collect website files
-        run: |
-          mkdir -p ./public
-          mv ./output.html ./public/index.html
-          mv ./rules_in_html/ ./public/rules
+      - name: Index the website
+        run: pagefind --site "public"
 
       # upload the build website to artifacts
       # so that we can download and inspect, if desired.

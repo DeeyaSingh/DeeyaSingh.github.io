@@ -1,12 +1,14 @@
 import os
+import sys
 import yaml
 import random
 from datetime import datetime, timedelta
 
 
-start_dir = 'capa-rules'
-txt_file_path = 'file_modification_dates.txt'
-output_html_path = 'output.html'
+start_dir = sys.argv[1]
+txt_file_path = sys.argv[2]
+out_dir = sys.argv[3]
+output_html_path = os.path.join(out_dir, 'index.html')
 
 
 predefined_colors = [
@@ -19,8 +21,8 @@ predefined_colors = [
 def read_file_paths(txt_file_path):
     categorized_files = {
         'Modified in the Past 3 Months': [],
-        'Modified This Year': [],
-        'Older than This Year': []
+        'Modified in the past 12 months': [],
+        'Older than 12 months': [],
     }
 
     with open(txt_file_path, 'r') as f:
@@ -29,6 +31,8 @@ def read_file_paths(txt_file_path):
     current_category = None
     for line in lines:
         line = line.strip()
+        if not line:
+            continue
         if '===' in line:
             category = line.strip('===').strip()
             if category in categorized_files:
@@ -77,11 +81,13 @@ def generate_html(categories_data, color_map):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rules Dashboard</title>
-    <link rel="stylesheet" href="pagefind/pagefind-ui.css">
-    <link rel="stylesheet" href="pagefind/pagefind-modular-ui.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" href="https://deeyasingh.github.io/assets/img/favicon.png" type="image/x-icon"> <!-- Favicon -->
+    <link rel="stylesheet" href="./pagefind/pagefind-ui.css">
+    <link rel="stylesheet" href="./pagefind/pagefind-modular-ui.css">
+    <link href="./pagefind/pagefind-ui.css" rel="stylesheet">
+    <link href="./css/poppins.css" rel="stylesheet">
+    <link href="./css/bootstrap-4.5.2.min.css" rel="stylesheet">
+    <link rel="icon" href="./img/favicon.png" type="image/x-icon"> <!-- Favicon -->
+    <script src="./pagefind/pagefind-ui.js"></script>
     <style>
          body {
             background-color: #ffffff;
@@ -204,14 +210,12 @@ def generate_html(categories_data, color_map):
 <body>
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="#">
-            <img src="https://deeyasingh.github.io/assets/img/logo.png" width="30" height="30" alt="Logo">
+            <img src="./img/logo.png" width="30" height="30" alt="Logo">
         </a>
-        <form class="form-inline">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-        </form>
+        <div id="search"></div>
     </nav>
     <div class="container-fluid">
-        <img src="https://deeyasingh.github.io/assets/img/HeroImage.png" alt="Hero Image" class="hero-image">
+        <img src="./img/HeroImage.png" alt="Hero Image" class="hero-image">
 '''
 
     
@@ -231,7 +235,7 @@ def generate_html(categories_data, color_map):
             first_word = get_first_word(card['namespace'])
             rectangle_color = color_map[first_word]
             file_name = card['name'].lower().replace(' ', '-') + '.html'
-            file_path = os.path.join('rules_in_html', file_name)
+            file_path = os.path.join('rules', file_name)
 
             card_html = f'''
                 <div class="card-wrapper">
@@ -262,12 +266,14 @@ def generate_html(categories_data, color_map):
     html_content += '''
     </div>
    
-    <script src="pagefind/pagefind-ui.js" type="text/javascript"></script>
     <script>
-        new PagefindUI({
-            element: "#search",
-            showEmptyFilters: false,
-            excerptLength: 15
+        window.addEventListener('DOMContentLoaded', (event) => {
+            new PagefindUI({ 
+                element: "#search", 
+                showSubResults: true,
+                showEmptyFilters: false,
+                excerptLength: 15,
+            });
         });
     </script>
 </body>
